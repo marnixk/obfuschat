@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:dart_console/dart_console.dart';
 import 'package:obfuschat/chat_log.dart';
 import 'package:obfuschat/chat_renderer.dart';
+import 'package:obfuschat/command_dispatch.dart';
+import 'package:obfuschat/commands/command_base.dart';
+import 'package:obfuschat/models.dart';
 import 'package:obfuschat/non_blocking_input.dart';
 
 Console console = Console();
@@ -12,13 +15,13 @@ ChatRenderer renderer = ChatRenderer(console: console, log: log);
 
 Future<void> addStartInfo(ChatLog log) async {
   var notes = <String>[
-    "  ___  _      __                _           _   ",
-    " / _ \\| |__  / _|_   _ ___  ___| |__   __ _| |_ ",
-    "| | | | '_ \\| |_| | | / __|/ __| '_ \\ / _` | __|",
-    "| |_| | |_) |  _| |_| \\__ \\ (__| | | | (_| | |_ ",
-    " \\___/|_.__/|_|  \\__,_|___/\\___|_| |_|\\__,_|\\__|",
+    "    ___  _      __                _           _   ",
+    "   / _ \\| |__  / _|_   _ ___  ___| |__   __ _| |_ ",
+    "  | | | | '_ \\| |_| | | / __|/ __| '_ \\ / _` | __|",
+    "  | |_| | |_) |  _| |_| \\__ \\ (__| | | | (_| | |_ ",
+    "   \\___/|_.__/|_|  \\__,_|___/\\___|_| |_|\\__,_|\\__|",
     "",
-    "Obfuschat -- if you make it weird enough, they'll never know what you're talking about",
+    "  Obfuschat -- if you make it weird enough, they'll never know what you're talking about",
     ""
   ];
 
@@ -32,6 +35,7 @@ Future<void> addStartInfo(ChatLog log) async {
 Future<void> chatLoop() async {
 
   bool running = true;
+  var dispatcher = CommandDispatch();
   Console console = Console();
   renderer.start();
 
@@ -46,6 +50,12 @@ Future<void> chatLoop() async {
       maxWidth: console.windowWidth - 8,
       continuous: true,
 
+      onKey: (key) {
+        if (key.isControl && key.controlChar == ControlCharacter.ctrlL) {
+          renderer.draw();
+        }
+      },
+
       onDone: (String messageText, ControlCharacter lastKey) {
         if (messageText.isEmpty) {
           return;
@@ -58,6 +68,18 @@ Future<void> chatLoop() async {
           stdin.echoMode = true;
 
           strSub!.cancel();
+          return;
+        }
+
+        // starts with a `/` it must be a command.
+        if (messageText[0] == "/") {
+
+          Command command = dispatcher.getCommandForInput(messageText);
+
+          List<ChatMessage> messages = command.execute(messageText);
+          for (var message in messages) {
+            log.addChatMessage(message);
+          }
           return;
         }
 
@@ -84,8 +106,6 @@ Future<void> chatLoop() async {
 
 void main(List<String> arguments) async {
 
-  // start the chat loop
-  // await Isolate.run(chatLoop);
   await chatLoop();
 
 }

@@ -66,7 +66,7 @@ class ChatRenderer {
     console
       ..cursorPosition = Coordinate(0, 0)
 
-      ..setBackgroundColor(ConsoleColor.brightBlue)
+      ..setBackgroundExtendedColor(178)
       ..setForegroundColor(ConsoleColor.black)
       ..writeAligned("Obfuschat", console.windowWidth, TextAlignment.center)
 

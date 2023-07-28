@@ -29,21 +29,21 @@ class ChatLog {
   /**
    * Add a chat message
    */
-  void _addChatMessage(ChatMessage chatMessage) {
+  void addChatMessage(ChatMessage chatMessage) {
     logs.add(chatMessage);
     _controller.add(chatMessage);
   }
 
   void addMessage(String from, String chat) {
-    this._addChatMessage(ChatMessage(message: chat, source: from, type: MessageType.message));
+    this.addChatMessage(ChatMessage(message: chat, source: from, type: MessageType.message));
   }
 
   void addNotification(String notification) {
-    this._addChatMessage(ChatMessage(message: notification, type: MessageType.notification));
+    this.addChatMessage(ChatMessage(message: notification, type: MessageType.notification));
   }
 
   void addSystemMessage(String source, String systemMessage) {
-    this._addChatMessage(ChatMessage(message: systemMessage, source: source, type: MessageType.system));
+    this.addChatMessage(ChatMessage(message: systemMessage, source: source, type: MessageType.system));
   }
 
 

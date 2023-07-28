@@ -20,8 +20,11 @@ class NonBlockingInput {
       int? x, int? y, int? maxWidth,
       bool continuous = false,
       List<ControlCharacter> doneOnControlChars = const <ControlCharacter>[controlCharEnterKey],
+
       BeforeDrawFunction? beforeDraw,
       AfterDrawFunction? afterDraw,
+      OnKeyFunction? onKey,
+
       required OnDoneFunction onDone
   }) {
 
@@ -83,6 +86,10 @@ class NonBlockingInput {
        * When a key press is received handle the output string properly.
        */
       onKey: (key) {
+
+        if (onKey != null) {
+          onKey(key);
+        }
 
         // handle control keys
         if (key.isControl) {
