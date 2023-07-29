@@ -14,6 +14,6 @@ abstract class Command {
   /**
    *  Execute the command and return one or more messages.
    */
-  List<ChatMessage> execute(String line);
+  List<ChatMessage> execute(ChatContext context, String line);
 
 }

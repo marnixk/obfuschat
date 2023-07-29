@@ -1,5 +1,5 @@
 import 'package:obfuschat/command_dispatch.dart';
-import 'package:obfuschat/commands/command_base.dart';
+import 'package:obfuschat/commands/command.dart';
 import 'package:obfuschat/commands/help_command.dart';
 import 'package:obfuschat/commands/unknown_command.dart';
 

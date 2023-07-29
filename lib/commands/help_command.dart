@@ -1,5 +1,5 @@
 import '../models.dart';
-import 'command_base.dart';
+import 'command.dart';
 
 /**
  *  Help command
@@ -16,7 +16,7 @@ class HelpCommand implements Command {
    * Return the help
    */
   @override
-  List<ChatMessage> execute(String line) {
+  List<ChatMessage> execute(ChatContext context, String line) {
     ChatMessage toMsg(String text) => ChatMessage(message: text, type: MessageType.system);
 
     // convert a list of strings with the help message to chat messages

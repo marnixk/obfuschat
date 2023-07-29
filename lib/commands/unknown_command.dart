@@ -1,4 +1,4 @@
-import 'package:obfuschat/commands/command_base.dart';
+import 'package:obfuschat/commands/command.dart';
 import 'package:obfuschat/models.dart';
 
 class UnknownCommand implements Command {
@@ -8,7 +8,7 @@ class UnknownCommand implements Command {
   }
 
   @override
-  List<ChatMessage> execute(Object line) {
+  List<ChatMessage> execute(ChatContext context, Object line) {
     return <ChatMessage>[
       ChatMessage(message: "Unknown command: $line", type: MessageType.system)
     ];

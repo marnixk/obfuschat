@@ -5,13 +5,20 @@ import 'package:dart_console/dart_console.dart';
 import 'package:obfuschat/chat_log.dart';
 import 'package:obfuschat/chat_renderer.dart';
 import 'package:obfuschat/command_dispatch.dart';
-import 'package:obfuschat/commands/command_base.dart';
+import 'package:obfuschat/commands/command.dart';
 import 'package:obfuschat/models.dart';
 import 'package:obfuschat/non_blocking_input.dart';
 
 Console console = Console();
 ChatLog log = ChatLog();
 ChatRenderer renderer = ChatRenderer(console: console, log: log);
+ChatUser localUser = ChatUser();
+
+ChatContext chatContext = ChatContext(
+  log: log,
+  renderer: renderer,
+  localUser: localUser
+);
 
 Future<void> addStartInfo(ChatLog log) async {
   var notes = <String>[
@@ -37,6 +44,7 @@ Future<void> chatLoop() async {
   bool running = true;
   var dispatcher = CommandDispatch();
   Console console = Console();
+
   renderer.start();
 
   await addStartInfo(log);
@@ -51,12 +59,16 @@ Future<void> chatLoop() async {
       continuous: true,
 
       onKey: (key) {
+
+        // refresh when pressing ctrl-l
         if (key.isControl && key.controlChar == ControlCharacter.ctrlL) {
           renderer.draw();
         }
+
       },
 
       onDone: (String messageText, ControlCharacter lastKey) {
+
         if (messageText.isEmpty) {
           return;
         }
@@ -76,15 +88,16 @@ Future<void> chatLoop() async {
 
           Command command = dispatcher.getCommandForInput(messageText);
 
-          List<ChatMessage> messages = command.execute(messageText);
+          List<ChatMessage> messages = command.execute(chatContext, messageText);
           for (var message in messages) {
             log.addChatMessage(message);
           }
+
           return;
         }
 
         // add message to log
-        log.addMessage("ireal", messageText);
+        log.addMessage(localUser.nick, messageText);
       },
   );
 
@@ -100,6 +113,7 @@ Future<void> chatLoop() async {
     ..clearScreen()
     ..showCursor()
   ;
+  exit(0);
 
 }
 

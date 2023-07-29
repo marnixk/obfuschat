@@ -39,7 +39,6 @@ class NonBlockingInput {
     y ??= cursor.row;
     maxWidth ??= console.windowWidth - x - 1;
 
-    // print("X: $x, Y: $y, max width: $maxWidth");
 
     /**
      * Draw the output
@@ -76,6 +75,7 @@ class NonBlockingInput {
        */
       onDone: (lastKey) {
         onDone(output, lastKey);
+
         if (continuous) {
           output = "";
           drawOutput();
@@ -98,21 +98,18 @@ class NonBlockingInput {
               output = output.substring(0, output.length - 1);
             }
           }
-          drawOutput();
-          return;
-        }
 
-        // it's a normal key.
-
-        // did we limit the max width?
-        if (maxWidth != null && output.length < maxWidth) {
-          output += key.char;
         }
-        // no? just add it.
-        else if (maxWidth == null) {
-          output += key.char;
+        else {
+          // did we limit the max width?
+          if (maxWidth != null && output.length < maxWidth) {
+            output += key.char;
+          }
+          // no? just add it.
+          else if (maxWidth == null) {
+            output += key.char;
+          }
         }
-
         drawOutput();
       }
     );
