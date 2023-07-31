@@ -1,3 +1,5 @@
+import 'package:obfuschat/commands/connect_command.dart';
+import 'package:obfuschat/commands/listen_command.dart';
 import 'package:obfuschat/commands/nick_command.dart';
 import 'package:obfuschat/commands/unknown_command.dart';
 
@@ -8,7 +10,9 @@ class CommandDispatch {
 
   static List<Command> allCommands = [
     HelpCommand(),
-    NickCommand()
+    NickCommand(),
+    ListenCommand(),
+    ConnectCommand()
   ];
 
   /**

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
+import 'package:obfuschat/chat_client.dart';
 import 'package:obfuschat/chat_log.dart';
 import 'package:obfuschat/chat_renderer.dart';
+import 'package:obfuschat/chat_server.dart';
 import 'package:obfuschat/command_dispatch.dart';
 import 'package:obfuschat/commands/command.dart';
 import 'package:obfuschat/models.dart';
@@ -13,11 +15,15 @@ Console console = Console();
 ChatLog log = ChatLog();
 ChatRenderer renderer = ChatRenderer(console: console, log: log);
 ChatUser localUser = ChatUser();
+ChatServer chatServer = ChatServer();
+ChatClient chatClient = ChatClient();
 
 ChatContext chatContext = ChatContext(
   log: log,
   renderer: renderer,
-  localUser: localUser
+  localUser: localUser,
+  chatServer: chatServer,
+  chatClient: chatClient
 );
 
 Future<void> addStartInfo(ChatLog log) async {
@@ -29,6 +35,8 @@ Future<void> addStartInfo(ChatLog log) async {
     "   \\___/|_.__/|_|  \\__,_|___/\\___|_| |_|\\__,_|\\__|",
     "",
     "  Obfuschat -- if you make it weird enough, they'll never know what you're talking about",
+    "",
+    "  type /help to get started. ",
     ""
   ];
 
@@ -96,8 +104,23 @@ Future<void> chatLoop() async {
           return;
         }
 
+        if (localUser.nick == null) {
+          log.addSystemMessage("", ":: Set a nickname first.");
+          return;
+        }
+
+        var chatMsg = ChatMessage(
+          source: localUser.nick!,
+          type: MessageType.message,
+          message: messageText,
+        );
+
         // add message to log
-        log.addMessage(localUser.nick, messageText);
+        log.addMessage(localUser.nick!, messageText);
+
+        // send to anyone that is connected.
+        chatServer.broadcast(chatMsg);
+        chatClient.sendMessage(chatMsg);
       },
   );
 
