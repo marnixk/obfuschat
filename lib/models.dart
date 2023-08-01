@@ -10,6 +10,7 @@ enum MessageType {
   notification,
   message,
   system,
+  protocol,
   empty
 }
 
@@ -23,8 +24,33 @@ class ChatMessage {
   MessageType type;
   int ageInMs = 0;
 
-  ChatMessage({required this.message, this.type = MessageType.message, this.source});
+  /**
+   * Initialise data-members
+   */
+  ChatMessage({
+    required this.message,
+    this.type = MessageType.message,
+    this.source
+  });
 
+  /**
+   * Convert to JSON map
+   */
+  Map<String, dynamic> toJson() => {
+    "type": this.type.name,
+    "source": this.source,
+    "message": this.message,
+  };
+
+  /**
+   * Turn map into ChatMessage instance
+   */
+  ChatMessage.fromJson(Map<String, dynamic> json)
+  :
+    type = MessageType.values.firstWhere((msgType) => msgType.name == json['type']),
+    source = json['source'],
+    message = json['message']
+  ;
 }
 
 class ChatUser {

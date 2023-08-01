@@ -32,7 +32,7 @@ class ChatRenderer {
 
     // when a new message arrives, draw.
     log.messageStream.listen((ChatMessage msg) {
-      draw();
+      draw(header: false, inputBox: false);
     });
 
     // first draw.
@@ -40,7 +40,7 @@ class ChatRenderer {
   }
 
 
-  draw() {
+  draw({bool header = true, bool contents = true, bool inputBox = true}) {
 
     var console = Console();
 
@@ -115,6 +115,14 @@ class ChatRenderer {
             ..resetColorAttributes()
             ..setForegroundExtendedColor(190)
             ..write(line.message);
+          break;
+          
+        case MessageType.protocol:
+          // console
+          //   ..resetColorAttributes()
+          //   ..setForegroundExtendedColor(237)
+          //   ..write(line.message)
+          // ;
           break;
     
       }

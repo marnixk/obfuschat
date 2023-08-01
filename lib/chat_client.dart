@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:obfuschat/chat_log.dart';
@@ -26,21 +27,31 @@ class ChatClient {
     this.client = await Socket.connect(host, port);
     connected = true;
 
+    this.client!.done.catchError((error) {
+      print("An error occurred: $error");
+    });
+
     this.client!.listen((charList) {
       var message = String.fromCharCodes(charList);
-      var msgParts = message.split("\t");
 
-      if (msgParts.length != 3) {
-        return;
+      try {
+        var jsonMessage = jsonDecode(message);
+        var chatMsg = ChatMessage.fromJson(jsonMessage);
+
+        // ping message?
+        if (chatMsg.type == MessageType.protocol && chatMsg.message == "ping") {
+          var pongMsg = ChatMessage(message: "pong", type: MessageType.protocol, source: "client");
+          this.client!.writeln(jsonEncode(pongMsg));
+        }
+
+        log.addChatMessage(chatMsg);
       }
-
-      ChatMessage chatMsg = ChatMessage(
-        source: msgParts[0],
-        type: MessageType.values.firstWhere((type) => type.name == msgParts[1]),
-        message: msgParts[2]
-      );
-
-      log.addChatMessage(chatMsg);
+      on FormatException catch (err) {
+        // do nothing
+      }
+      catch (err) {
+        log.addChatMessage(ChatMessage(type: MessageType.system, message: "$err"));
+      }
     },
     onError: (err) {
       connected = false;
@@ -50,16 +61,15 @@ class ChatClient {
     });
   }
 
+  /**
+   * Send a message to the server by encoding it to json.
+   */
   sendMessage(ChatMessage chatMsg) {
     if (!connected) {
       return;
     }
 
-    this.client?.writeln(
-      "${chatMsg.source}\t"
-      "${chatMsg.type.name}\t"
-      "${chatMsg.message}"
-    );
+    this.client?.writeln(jsonEncode(chatMsg));
   }
 
   /**

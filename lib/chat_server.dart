@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -27,45 +28,73 @@ class ChatServer {
     this.port = port;
     this.active = true;
 
+    // send a ping message to keep sockets alive.
+    _initialisePing();
+
     // server socket start
     serverSocket.listen((socket) {
+      _handleNewConnection(socket, log);
+    });
+  }
 
-      activeSockets.add(socket);
+  void _handleNewConnection(Socket socket, ChatLog log) {
 
-      // context
-      ChatUser user = ChatUser();
+    activeSockets.add(socket);
 
-      // handle an incoming socket
-      socket.listen((Uint8List data) {
+    socket.done.catchError((error) {
+      print("Error: $error");
+    });
 
-        var messageText = String.fromCharCodes(data);
+    // handle an incoming socket
+    socket.listen((Uint8List data) {
 
-        // message parts
-        List<String> msgParts = messageText.split("\t");
+      var messageText = String.fromCharCodes(data);
+      try {
+        ChatMessage chatMsg = ChatMessage.fromJson(jsonDecode(messageText));
 
-        if (msgParts.length != 3) {
-          return;
-        }
-
-        // chat message reconstructed
-        ChatMessage chatMsg = ChatMessage(
-          source: msgParts[0],
-          type: MessageType.values.firstWhere((type) => type.name == msgParts[1]),
-          message: msgParts[2]
-        );
-
-        // add message to log
+        // show in chat log
         log.addChatMessage(chatMsg);
 
         // broadcast to other users -- they should receive a message as well
         broadcast(chatMsg, socket);
-      },
-      onError: (err) {
-        activeSockets.remove(socket);
-      },
-      onDone: () {
-        activeSockets.remove(socket);
-      });
+      }
+      on FormatException catch (err) {
+        // do nothing
+      }
+      catch (err) {
+        log.addSystemMessage("error", "$err");
+      }
+    },
+    onError: (err) {
+      activeSockets.remove(socket);
+    },
+    onDone: () {
+      activeSockets.remove(socket);
+    });
+  }
+
+  /**
+   * Initialise a message ping that sends a 'protocol' message to all active sockets every
+   * number of seconds.
+   */
+  void _initialisePing() {
+
+    var pingMsg = ChatMessage(message: "ping", type: MessageType.protocol, source: "server");
+    var jsonPingMsg = jsonEncode(pingMsg);
+
+    // send a ping message to keep sockets alive.
+    Stream.periodic(Duration(seconds: 5)).listen((event) {
+
+      // send to each active socket.
+      for (var socket in activeSockets) {
+        try {
+          socket.writeln(jsonPingMsg);
+        }
+        catch (err) {
+          // couldn't write to socket, maybe it closed in between.
+        }
+      }
+
     });
   }
 
@@ -85,11 +114,7 @@ class ChatServer {
         continue;
       }
 
-      other.writeln(
-        "${chatMsg.source}\t"
-        "${chatMsg.type.name}\t"
-        "${chatMsg.message}"
-      );
+      other.writeln(jsonEncode(chatMsg));
     }
   }
 
